@@ -1,4 +1,5 @@
 export {
-    createToken,
-    type CreateTokenArgs,
-  } from "./create-token.js";
+  createToken,
+  type CreateTokenOptions,
+  type TokenParams,
+} from "./create-token.js";
