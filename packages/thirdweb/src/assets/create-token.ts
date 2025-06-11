@@ -1,6 +1,6 @@
 import type { Hex } from "viem";
 import type { ThirdwebClient } from "../client/client.js";
-import { ZERO_ADDRESS } from "../constants/addresses.js";
+import { NATIVE_TOKEN_ADDRESS, ZERO_ADDRESS } from "../constants/addresses.js";
 import { getContract } from "../contract/contract.js";
 import { createAsset } from "../extensions/assets/__generated__/AssetEntrypointERC20/write/createAsset.js";
 import { encodeInitialize } from "../extensions/assets/__generated__/ERC20Asset/write/initialize.js";
@@ -9,10 +9,15 @@ import { getRpcClient } from "../rpc/rpc.js";
 import { upload } from "../storage/upload.js";
 import type { FileOrBufferOrString } from "../storage/upload/types.js";
 import { sendTransaction } from "../transaction/actions/send-transaction.js";
+import { encodeAbiParameters } from "../utils/abi/encodeAbiParameters.js";
 import { keccakId } from "../utils/any-evm/keccak-id.js";
 import { toHex } from "../utils/encoding/hex.js";
 import type { ClientAndChainAndAccount } from "../utils/types.js";
-import { DEFAULT_MAX_SUPPLY_ERC20 } from "./constants.js";
+import {
+  DEFAULT_MAX_SUPPLY_ERC20,
+  DEFAULT_POOL_FEE,
+  DEFAULT_POOL_INITIAL_TICK,
+} from "./constants.js";
 import { getEntrypointERC20 } from "./get-entrypoint-erc20.js";
 
 export type TokenParams = {
@@ -27,13 +32,21 @@ export type TokenParams = {
   owner?: string;
 };
 
+export type PoolConfig = {
+  amount: bigint;
+  currency?: string;
+  fee?: number;
+  initialTick?: number;
+};
+
 export type CreateTokenOptions = ClientAndChainAndAccount & {
   salt?: string;
   params: TokenParams;
+  poolConfig?: PoolConfig;
 };
 
 export async function createToken(options: CreateTokenOptions) {
-  const { chain, client, account, params } = options;
+  const { chain, client, account, params, poolConfig } = options;
 
   const creator = params.owner || account.address;
 
@@ -62,6 +75,8 @@ export async function createToken(options: CreateTokenOptions) {
     chain,
   });
 
+  const hookData = poolConfig ? encodePoolConfig(poolConfig) : "0x";
+
   const transaction = createAsset({
     contract: entrypoint,
     creator,
@@ -70,7 +85,7 @@ export async function createToken(options: CreateTokenOptions) {
       referrer: ZERO_ADDRESS,
       salt,
       data: encodedInitData,
-      hookData: "0x",
+      hookData,
     },
   });
 
@@ -108,4 +123,32 @@ async function encodeInitParams(options: {
     maxSupply: params.maxSupply || DEFAULT_MAX_SUPPLY_ERC20,
     owner: creator,
   });
+}
+
+function encodePoolConfig(poolConfig: PoolConfig): Hex {
+  const POOL_PARAMS = [
+    {
+      type: "address",
+      name: "currency",
+    },
+    {
+      type: "uint256",
+      name: "amount",
+    },
+    {
+      type: "uint24",
+      name: "fee",
+    },
+    {
+      type: "uint24",
+      name: "initialTick",
+    },
+  ] as const;
+
+  return encodeAbiParameters(POOL_PARAMS, [
+    poolConfig.currency || NATIVE_TOKEN_ADDRESS,
+    poolConfig.amount,
+    poolConfig.fee || DEFAULT_POOL_FEE,
+    poolConfig.initialTick || DEFAULT_POOL_INITIAL_TICK,
+  ]);
 }
