@@ -1,7 +1,6 @@
 import type { Hex } from "viem";
 import type { ThirdwebClient } from "../client/client.js";
 import { NATIVE_TOKEN_ADDRESS, ZERO_ADDRESS } from "../constants/addresses.js";
-import { getContract } from "../contract/contract.js";
 import { createAsset } from "../extensions/assets/__generated__/AssetEntrypointERC20/write/createAsset.js";
 import { encodeInitialize } from "../extensions/assets/__generated__/ERC20Asset/write/initialize.js";
 import { eth_blockNumber } from "../rpc/actions/eth_blockNumber.js";
@@ -18,7 +17,7 @@ import {
   DEFAULT_POOL_FEE,
   DEFAULT_POOL_INITIAL_TICK,
 } from "./constants.js";
-import { getEntrypointERC20 } from "./get-entrypoint-erc20.js";
+import { getOrDeployEntrypointERC20 } from "./get-entrypoint-erc20.js";
 
 export type TokenParams = {
   name: string;
@@ -46,7 +45,7 @@ export type CreateTokenOptions = ClientAndChainAndAccount & {
 };
 
 export async function createToken(options: CreateTokenOptions) {
-  const { chain, client, account, params, poolConfig } = options;
+  const { client, account, params, poolConfig } = options;
 
   const creator = params.owner || account.address;
 
@@ -68,12 +67,7 @@ export async function createToken(options: CreateTokenOptions) {
         size: 32,
       });
 
-  const entrypointAddress = await getEntrypointERC20(chain);
-  const entrypoint = getContract({
-    client,
-    address: entrypointAddress,
-    chain,
-  });
+  const entrypoint = await getOrDeployEntrypointERC20(options);
 
   const hookData = poolConfig ? encodePoolConfig(poolConfig) : "0x";
 
