@@ -61,7 +61,7 @@ export async function deployRouter(options: ClientAndChainAndAccount) {
     contractId: "Router",
     constructorParams: {
       _marketSaleImplementation: marketSaleImpl.address,
-      _feeManager: feeManager,
+      _feeManager: feeManager.address,
     },
     publisher: "0x6453a486d52e0EB6E79Ec4491038E2522a926936",
   });
@@ -107,7 +107,7 @@ export async function deployRewardLocker(options: ClientAndChainAndAccount) {
     ...options,
     contractId: "RewardLocker",
     constructorParams: {
-      _feeManager: feeManager,
+      _feeManager: feeManager.address,
       _v3PositionManager: v3PositionManager,
       _v4PositionManager: v4PositionManager,
     },
@@ -205,7 +205,7 @@ export async function getDeployedRouter(options: ClientAndChain) {
     contractId: "Router",
     constructorParams: {
       _marketSaleImplementation: marketSaleImpl.address,
-      _feeManager: feeManager,
+      _feeManager: feeManager.address,
     },
     publisher: "0x6453a486d52e0EB6E79Ec4491038E2522a926936",
   });
@@ -265,7 +265,7 @@ export async function getDeployedRewardLocker(options: ClientAndChain) {
     ...options,
     contractId: "RewardLocker",
     constructorParams: {
-      _feeManager: feeManager,
+      _feeManager: feeManager.address,
       _v3PositionManager: v3PositionManager,
       _v4PositionManager: v4PositionManager,
     },

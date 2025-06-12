@@ -1,6 +1,6 @@
-import { type ThirdwebContract, getContract } from "src/contract/contract.js";
-import { getOrDeployInfraContract } from "src/contract/deployment/utils/bootstrap.js";
-import { encodeInitialize } from "src/extensions/assets/__generated__/AssetEntrypointERC20/write/initialize.js";
+import { type ThirdwebContract, getContract } from "../contract/contract.js";
+import { getOrDeployInfraContract } from "../contract/deployment/utils/bootstrap.js";
+import { encodeInitialize } from "../extensions/assets/__generated__/AssetEntrypointERC20/write/initialize.js";
 import type { ClientAndChainAndAccount } from "../utils/types.js";
 import {
   deployRewardLocker,
@@ -47,6 +47,7 @@ export async function getOrDeployEntrypointERC20(
     ...options,
     contractId: "AssetEntrypointERC20",
     publisher: "0x6453a486d52e0EB6E79Ec4491038E2522a926936",
+    version: "0.0.2",
   });
 
   // encode init data
@@ -56,7 +57,7 @@ export async function getOrDeployEntrypointERC20(
     rewardLocker: rewardLocker.address,
   });
 
-  const routerProxyAddress = await deployInfraProxy({
+  const entyrpointProxyAddress = await deployInfraProxy({
     ...options,
     initData,
     extraData: "0x",
@@ -67,6 +68,6 @@ export async function getOrDeployEntrypointERC20(
   return getContract({
     client: options.client,
     chain: options.chain,
-    address: routerProxyAddress,
+    address: entyrpointProxyAddress,
   });
 }
